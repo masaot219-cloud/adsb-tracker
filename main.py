@@ -1,7 +1,18 @@
 import os
 import time
+import threading
+from http.server import HTTPServer, BaseHTTPRequestHandler
 import requests
 
+# === Renderのポート検知をクリアするためのダミーサーバー ===
+def start_dummy_server():
+    port = int(os.environ.get("PORT", 10000))
+    server = HTTPServer(("0.0.0.0", port), lambda *args: BaseHTTPRequestHandler(*args))
+    server.serve_forever()
+
+threading.Thread(target=start_dummy_server, daemon=True).start()
+
+# === 設定の読み込み ===
 ICAO_CODE = os.environ.get("ICAO_CODE", "acfc26")
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 FLIGHTAWARE_API_KEY = os.environ.get("FLIGHTAWARE_API_KEY")
@@ -98,6 +109,7 @@ def check_takeoff():
         print(f"エラー: {e}")
 
 if __name__ == "__main__":
+    print("N936CAの常時監視を開始しました...")
     while True:
         check_takeoff()
         time.sleep(CHECK_INTERVAL)
